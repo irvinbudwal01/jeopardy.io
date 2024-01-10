@@ -1,0 +1,7 @@
+.game-board {
+    border: 10px;
+    background-color: blue;
+    max-height: 50px;
+    max-width: 50px;
+}
+

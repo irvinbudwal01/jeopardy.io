@@ -1,0 +1,559 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@using GroupService
+@using Models
+@using System.Threading
+
+<button @onclick="LogStuff">Log</button> @*debug button*@
+
+@if (currentState == States.homePage) @*landing page*@
+{
+    <PageTitle>Jeopardy.IO</PageTitle>
+
+    <div class="form-group">
+        <label>
+            User:
+            <input @bind="userInput" />
+        </label>
+    </div>
+    <div class="form-group"> @*TODO: See below TODO on line 34*@
+        <label>
+            Message:
+            <input @bind="messageInput" size="50" />
+        </label>
+    </div>
+    <div class="form-group">
+        <label>
+            Group Name:
+            <input @bind="groupName" size="50" />
+        </label>
+    </div>
+
+    <button @onclick="Send" disabled="@(!IsConnected)">Send</button> @*TODO: Repurpose this for ingame chat...not global chat*@
+
+    <button @onclick="CreateScreen" disabled="@(!IsConnected || userInput == null)">Create</button> @*cannot create until group name is set*@
+
+    <button @onclick="JoinGroup" disabled="@(!IsConnected || userInput == null || groupName == null)">Join</button> @*should not be able to join until name field is set*@
+
+    <div>
+        <h3>
+            Room: @groupName @*honestly can get rid of this*@
+        </h3>
+    </div>
+
+    <hr>
+
+    <ul id="messagesList"> @*TODO: See above TODO on line 34*@
+        @foreach (var message in messages)
+        {
+            <li>@message</li>
+        }
+    </ul>
+
+}
+
+else if (currentState == States.creatingRoom) @*game creating screen...technically all fields should be filled in with questions before lobby creation*@
+{
+
+    <div class="form-group">
+        <label>
+            Group Name:
+            <input @bind="groupName" />
+        </label>
+        <label>
+            Categories:
+            <input @bind="gameBoard[0]" /> @*I could make this look nicer...maybe give similar styling to actual gameboard?*@
+            <input @bind="gameBoard[1]" />
+            <input @bind="gameBoard[2]" />
+            <input @bind="gameBoard[3]" />
+            <input @bind="gameBoard[4]" />
+        </label>
+        <label>
+            Questions:
+            <input @bind="gameBoard[5]" />
+            <input @bind="gameBoard[6]" />
+            <input @bind="gameBoard[7]" />
+            <input @bind="gameBoard[8]" />
+            <input @bind="gameBoard[9]" />
+            <input @bind="gameBoard[10]" />
+            <input @bind="gameBoard[11]" />
+            <input @bind="gameBoard[12]" />
+            <input @bind="gameBoard[13]" />
+            <input @bind="gameBoard[14]" />
+            <input @bind="gameBoard[15]" />
+            <input @bind="gameBoard[16]" />
+            <input @bind="gameBoard[17]" />
+            <input @bind="gameBoard[18]" />
+            <input @bind="gameBoard[19]" />
+            <input @bind="gameBoard[20]" />
+            <input @bind="gameBoard[21]" />
+            <input @bind="gameBoard[22]" />
+            <input @bind="gameBoard[23]" />
+            <input @bind="gameBoard[24]" />
+            <input @bind="gameBoard[25]" />
+            <input @bind="gameBoard[26]" />
+            <input @bind="gameBoard[27]" />
+            <input @bind="gameBoard[28]" />
+            <input @bind="gameBoard[29]" />
+        </label>
+    </div>
+
+    <button @onclick="CreateGroup" disabled="@(!IsConnected || groupName == null)">Create</button> @*maybe have check for each entry being filled? do it in a function that returns bools instead*@
+
+}
+
+else if (currentState == States.gameLobby) @*game lobby...this screen is fine...maybe display groupName somewhere*@
+{
+    <ul id="playersList">
+        @foreach (var user in GroupManagementService.getUsers(groupName))
+        {
+            <li>@user</li>
+        }
+    </ul>
+
+    <button @onclick="InitGame" disabled="@(!IsConnected || user.role != "HOST")">Start!</button> @*working as intended...*@
+}
+
+else if (currentState == States.inGame && allContestants.Count != 0) @*be sure to only render if allContestants has been initialized (avoids index error)*@
+{
+
+    <ul id="playersList"> CONTESTANTS
+        @foreach (var user in allContestants) @*only renders contestants (not the host)*@
+        {
+            <li>@user.Username</li>
+        }
+    </ul>
+
+    <div>Current player: @allContestants[indexForCurrentPlayer].Username</div> @*this should be the only way to find who the selected player is (using index)*@
+
+    <div class='game-board'>
+        @foreach (var entry in realCategories) @*renders categories and questions separately since only questions should be clickable*@
+        {
+            <div class='entry'>@entry</div>
+        }
+        @foreach (var entry in realQuestions) @*this needs a separate state if a button is clicked...*@
+        {
+            <div class='entry'>@entry.points
+            <button class="btn-select" disabled="@(entry.answered)" @onclick="() => SelectQuestion(entry)">Select</button> @*lambda function to give each entry callback so correct question is displayed*@
+            </div>
+        }
+    </div>
+}
+
+else if (currentState == States.inQuestion) { @*<-- need to finish implementing this... think i'll just have a submission bar that only the buzzed player can hit *@
+    <div>@currentQuestion.question</div>      @*need to figure out how to implement a timer so all players can *@
+    <div>@questionTimer</div>
+    <div>Buzz Status: @buzzable</div>
+    <div>Paused Status: @pauseTimer</div>
+
+    @foreach(var player in allContestants) {
+        <br>
+        <div class="player" @ref="testRef" tabindex="-1" @onkeydown="args => HandleKeydown(args,player)" style="@player.color">@player.Username</div> <div>Points: @player.points</div>
+    }
+
+    <div class="form-group">
+        <EditForm Model=@answerAttempt OnSubmit=@answerSubmitted>
+        <label>
+            Answer:
+            <InputText disabled="@(!user.buzzed || !personalBuzz)" @bind-Value="@answerAttempt"/>
+        </label>
+            <input type="submit" disabled="@(!user.buzzed || !personalBuzz)" value="Save"/>
+        </EditForm>
+    </div>
+
+    @* <button @onclick="toggleInput">input</button>
+    @if(showInput) { 
+    <div class="highlight" @ref="testRef" tabindex="0" @onkeydown="HandleKeydown">@pressedKey</div>
+    } *@
+}
+
+<style>
+    .game-board {
+        height: 90vh;
+        margin: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    }
+
+    .entry {
+        border-color: black;
+        border-style: solid;
+        border-width: 10px;
+        background-color: blue;
+        color: white;
+        font-size: 3rem;
+        text-align: center;
+        padding: 4rem;
+        align-content: bottom;
+        justify-content: bottom;
+    }
+
+    .btn-select {
+    max-height: 25px;
+    max-width: 60px;
+    justify-self: bottom;
+    align-self: bottom;
+    font-size: small;
+    }
+
+    .player {
+        display: flex;
+        height: 100px;
+        width: 100px;
+        border-radius: 50%;
+        background-color: red;
+        color: blue;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+@code {
+    private ElementReference testRef;
+
+    private string? pressedKey;
+
+    @* protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if(firstRender) {
+            if (showInput) await testRef.FocusAsync();
+        }
+    }
+    void toggleInput() {
+        showInput = !showInput;
+    } *@
+    @* public class User 
+    {
+        public string? Username { get; set; }                                   *************************IMPORTED THESE TWO USING Models/DataTypes.cs
+        public string? role { get; set; }
+    };
+
+    public class Questions
+    {
+        public string? question { get; set; }
+        public int? points { get; set; }
+
+        public bool answered { get; set; }
+
+        public Questions()
+        {
+            question = null;
+            points = null;
+            answered = false;
+
+        }
+    } *@
+
+    private HubConnection? hubConnection; //init individal user connection to hub
+    private List<string> messages = new List<string>(); //messages to display
+
+    private string? userInput;
+
+    private string? messageInput;
+
+    private string? groupName;
+
+    private enum States { homePage, creatingRoom, gameLobby, inGame, inQuestion, postGame};
+
+    private States? currentState = States.homePage;
+
+    public string[]? gameBoard = new string[30];
+
+    public string[]? realCategories = new string[5];
+
+    public List<Questions>? realQuestions = new List<Questions>();
+
+    public User user = new User()
+        {
+            Username = null,
+            role = null,
+            points = 0,
+            color = "background-color: red; color: blue",
+            buzzed = false
+        };
+
+    public bool personalBuzz = false;
+    public Questions currentQuestion = new Questions();
+
+    public int indexForCurrentPlayer = 0;
+
+    public int questionTimer = 8;
+
+    public bool pauseTimer = false;
+
+    public string? answerAttempt = "";
+
+    public bool buzzable = false;
+
+    public List<User> allContestants = new List<User>();
+
+    [Inject]
+    private IGroupManagementService? GroupManagementService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder().WithUrl(Navigation.ToAbsoluteUri("/chathub")).Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            var encodedMsg = $"{user}: {message}";
+            messages.Add(encodedMsg);
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string>("UpdateGroup", (groupName) =>
+        {
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string, string[]>("StartGame", (groupName, board) =>
+        {
+            currentState = States.inGame;
+            for (int i = 0; i < 5; i++)
+            {
+                realCategories[i] = board[i];
+            }
+
+            for (int i = 0; i < 25; i++)
+            {
+                realQuestions?.Add(new Questions());
+                realQuestions[i].question = board[i + 5];
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                realQuestions[i].points = 200;
+            }
+            for (int i = 5; i < 10; i++)
+            {
+                realQuestions[i].points = 400;
+            }
+            for (int i = 10; i < 15; i++)
+            {
+                realQuestions[i].points = 600;
+            }
+            for (int i = 15; i < 20; i++)
+            {
+                realQuestions[i].points = 800;
+            }
+            for (int i = 20; i < 25; i++)
+            {
+                realQuestions[i].points = 1000;
+            }
+            List<string> tempList = GroupManagementService.getUsers(groupName);
+            for (int i = 1; i < GroupManagementService.getUsers(groupName).Count; i++)
+            {
+                allContestants.Add(new User());
+                allContestants[i - 1].Username = tempList[i];
+                allContestants[i - 1].role = "CONTESTANT";
+                allContestants[i - 1].points = 0;
+            }
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string, int>("SelectPlayer", (groupName, index) =>
+        {
+            if (index == allContestants.Count - 1)
+            {
+                index = 0;
+            }
+            else
+            {
+                index += 1;
+            }
+            indexForCurrentPlayer = index;
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string, Questions>("SelectQuestion", (groupName, question) => {
+            foreach(Questions entry in realQuestions) { //this implies that EVERY QUESTION MUST BE DIFFERENT
+                if(entry.question == question.question){
+                    entry.answered = true;
+                }
+            }
+            @* question.answered = true; *@
+            currentState = States.inQuestion;
+            currentQuestion = question;
+            InvokeAsync(StateHasChanged);
+            });
+
+        hubConnection.On<string, int>("UpdateTimer", (groupName, currentTime) => {
+            questionTimer = currentTime;
+            InvokeAsync(StateHasChanged);
+            });
+
+        hubConnection.On<string, bool>("SetQuestionStatus", (groupName, buzzableRes) => {
+            buzzable = !buzzableRes;
+            InvokeAsync(StateHasChanged);
+            });
+
+        hubConnection.On<string, bool>("SetPauseStatus", (groupName, pauseTimerRes) => {
+            pauseTimer = !pauseTimerRes;
+            InvokeAsync(StateHasChanged);
+            });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", groupName, userInput, messageInput);
+        }
+    }
+
+    public void CreateScreen()
+    {
+        if (hubConnection is not null)
+        {
+            currentState = States.creatingRoom;
+        }
+    }
+
+    public async Task CreateGroup()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("JoinGroup", groupName);
+            GroupManagementService?.CreateGroup(groupName);
+            GroupManagementService?.AddUser(groupName, userInput);
+            user.role = "HOST";
+            currentState = States.gameLobby;
+        }
+    }
+
+    public async Task JoinGroup()
+    {
+        if (hubConnection is not null)
+        {
+            if (GroupManagementService.ValidateGroupKey(groupName))
+            {
+                await hubConnection.SendAsync("JoinGroup", groupName);
+                GroupManagementService.AddUser(groupName, userInput);
+                user.role = "CONTESTANT";
+                currentState = States.gameLobby;
+            }
+            else
+            {
+                GroupManagementService?.CreateGroup(groupName);
+            }
+        }
+    }
+
+    public async Task LeaveGroup()
+    {
+        if (hubConnection is not null && groupName is not null && userInput is not null)
+        {
+            await hubConnection.SendAsync("LeaveGroup", groupName);
+            GroupManagementService.RemoveUser(groupName, userInput);
+        }
+    }
+    public async void InitGame()
+    {
+        await hubConnection.SendAsync("StartGame", groupName, gameBoard);
+        currentState = States.inGame;
+    }
+
+    public async void SelectPlayer()
+    {
+        await hubConnection.SendAsync("SelectPlayer", groupName, indexForCurrentPlayer);
+    }
+
+    public async void SelectQuestion(Questions question) {
+        question.answered = true;
+        await hubConnection.SendAsync("SelectQuestion", groupName, question); 
+
+        //currentState = States.inQuestion;
+
+        @* int initialTimer = 5;
+
+        var firstTimer = new Timer(new TimerCallback(async _ => {
+            if(initialTimer > 0) {
+                initialTimer--;
+            }
+        }), null, 1000, 1000); *@
+        
+        await Task.Delay(5000);
+
+        await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+
+        var timer = new Timer(new TimerCallback(async _ =>
+        {
+            if(questionTimer > 0 && !pauseTimer) {
+                questionTimer--;
+                await hubConnection.SendAsync("UpdateTimer", groupName, questionTimer);
+            }
+        }), null, 1000, 1000);
+        }
+
+    public async void onSpacebarDown() {
+        await hubConnection.SendAsync("onSpacebarDown", groupName, userInput);
+    }
+
+    public async void HandleKeydown(KeyboardEventArgs e, User player) { //on spacedown, first player to hit space while timer is above 0 pauses timer and enables submit textfield
+        
+        if(buzzable) {
+        
+        pressedKey = e.Key;
+        if(pressedKey == " " && player.Username == userInput && !personalBuzz) {
+
+            await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+
+            player.color = "background-color: blue; color: red";
+
+            await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+
+            user.buzzed = true;
+
+            personalBuzz = true;
+        }
+        await Task.Delay(10000);
+
+        user.buzzed = false;
+
+        await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+
+        await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+
+        player.color = "background-color: red; color: blue";
+    }
+    }
+
+    public async void answerSubmitted(EditContext editContext) { //this needs to be sent to host
+        Console.WriteLine(answerAttempt);
+    }
+
+    public async void ReturnToQuestions() {
+        
+        personalBuzz = false; //needs to set back to false so user can answer later questions
+    }
+
+    private bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await LeaveGroup();
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    public void LogStuff()
+    {
+        //GroupManagementService?.displayEverything();
+        @* foreach (User user in allContestants)
+{
+Console.WriteLine(user.Username);
+} *@
+        //SelectPlayer();
+
+        //pauseTimer = !pauseTimer;
+        //currentState = States.inGame;
+    }
+
+}
