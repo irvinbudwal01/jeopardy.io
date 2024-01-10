@@ -57,6 +57,8 @@ public class ChatHub : Hub
         await Clients.Group(groupName).SendAsync("SetPauseStatus", groupName, pauseTimer);
     }
 
+    
+
     // public override Task OnConnectedAsync() {
     //     UserHandler.ConnectedIds.Add(Context.ConnectionId);
     //     Console.WriteLine("connect called");

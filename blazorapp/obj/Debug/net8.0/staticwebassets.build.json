@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "GM50v1089A++2c65g6fiYEhK4BPqOTPVKlr8eB0Hqk4=",
+  "Hash": "ek758Db8xWgIAadcARfA/k8LHHbERp/gpMBkVwSsgho=",
   "Source": "blazorapp",
   "BasePath": "_content/blazorapp",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "blazorapp\\wwwroot",
       "Source": "blazorapp",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\",
       "BasePath": "_content/blazorapp",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\blazorapp.styles.css",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\blazorapp.styles.css",
       "SourceId": "blazorapp",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "blazorapp.styles.css",
       "AssetKind": "All",
@@ -33,13 +33,13 @@
       "AssetTraitValue": "ApplicationBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\blazorapp.styles.css"
+      "OriginalItemSpec": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\bundle\\blazorapp.styles.css"
     },
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\blazorapp.bundle.scp.css",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\blazorapp.bundle.scp.css",
       "SourceId": "blazorapp",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "blazorapp.bundle.scp.css",
       "AssetKind": "All",
@@ -52,13 +52,13 @@
       "AssetTraitValue": "ProjectBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\irvin\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\blazorapp.bundle.scp.css"
+      "OriginalItemSpec": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\blazorapp.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\wwwroot\\app.css",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\app.css",
       "SourceId": "blazorapp",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "app.css",
       "AssetKind": "All",
@@ -74,10 +74,10 @@
       "OriginalItemSpec": "wwwroot\\app.css"
     },
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\bootstrap\\bootstrap.min.css",
       "SourceId": "blazorapp",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "bootstrap/bootstrap.min.css",
       "AssetKind": "All",
@@ -93,10 +93,10 @@
       "OriginalItemSpec": "wwwroot\\bootstrap\\bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\bootstrap\\bootstrap.min.css.map",
       "SourceId": "blazorapp",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "bootstrap/bootstrap.min.css.map",
       "AssetKind": "All",
@@ -112,10 +112,10 @@
       "OriginalItemSpec": "wwwroot\\bootstrap\\bootstrap.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\irvin\\blazorapp\\wwwroot\\favicon.png",
+      "Identity": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\favicon.png",
       "SourceId": "blazorapp",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\irvin\\blazorapp\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\wwwroot\\",
       "BasePath": "_content/blazorapp",
       "RelativePath": "favicon.png",
       "AssetKind": "All",

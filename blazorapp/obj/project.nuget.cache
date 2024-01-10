@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qUGXiaTgDyjtX/QHLrVRoL0uwwT0efQeFgVOMT96aK+TGeijR8l3vwcKHynyHpSaB2+VYmlCWMn7KQMhqsp36A==",
+  "dgSpecHash": "nkqRY7TnlRfv4uhd8/Xr7ysIXn44JETDXnNp5ij9DgZCTzqADOuiOJFkESIUeHg0NTC36FRGOK7xpLGYvH6axQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\irvin\\blazorapp\\blazorapp.csproj",
+  "projectFilePath": "C:\\Users\\irvin\\jeopardy.io\\blazorapp\\blazorapp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\irvin\\.nuget\\packages\\microsoft.aspnetcore.connections.abstractions\\8.0.0\\microsoft.aspnetcore.connections.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\irvin\\.nuget\\packages\\microsoft.aspnetcore.http.connections.client\\8.0.0\\microsoft.aspnetcore.http.connections.client.8.0.0.nupkg.sha512",
