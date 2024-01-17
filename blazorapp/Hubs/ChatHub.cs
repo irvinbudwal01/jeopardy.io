@@ -45,10 +45,6 @@ public class ChatHub : Hub
         await Clients.Group(groupName).SendAsync("UpdateTimer", groupName, currentTime);
     }
 
-    public async Task onSpacebarDown(string groupName, string userInput) {
-        await Clients.Group(groupName).SendAsync("onSpacebarDown", groupName, userInput);
-    }
-
     public async Task SetQuestionStatus(string groupName, bool buzzable) {
         await Clients.Group(groupName).SendAsync("SetQuestionStatus", groupName, buzzable);
     }
@@ -57,7 +53,11 @@ public class ChatHub : Hub
         await Clients.Group(groupName).SendAsync("SetPauseStatus", groupName, pauseTimer);
     }
 
-    
+    public async Task AnswerSubmitted(string groupName, string answer) {
+        await Clients.Group(groupName).SendAsync("AnswerSubmitted", groupName, answer);
+    }
+
+
 
     // public override Task OnConnectedAsync() {
     //     UserHandler.ConnectedIds.Add(Context.ConnectionId);

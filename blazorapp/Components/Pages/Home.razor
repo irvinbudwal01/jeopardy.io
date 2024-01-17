@@ -160,8 +160,16 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
             Answer:
             <InputText disabled="@(!user.buzzed || !personalBuzz)" @bind-Value="@answerAttempt"/>
         </label>
-            <input type="submit" disabled="@(!user.buzzed || !personalBuzz)" value="Submit"/>
+            <input type="submit" disabled="@(!user.buzzed || !personalBuzz || submitted)" value="Submit"/> @*this needs to be clicked twice to fire answerSubmitted for some reason*@
         </EditForm>
+
+        @if(user.role == "HOST") {
+            @((MarkupString)someHTML)
+            <label>@answerAttempt</label>
+        }
+        @if(user.role == "CONTESTANT"){
+            <label>@answerAttempt</label>
+        }
     </div>
 
     @* <button @onclick="toggleInput">input</button>
@@ -276,6 +284,7 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
         };
 
     public bool personalBuzz = false;
+    public bool submitted = false;
     public Questions currentQuestion = new Questions();
 
     public int indexForCurrentPlayer = 0;
@@ -289,6 +298,8 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
     public bool buzzable = false;
 
     public List<User> allContestants = new List<User>();
+
+    public string someHTML = "";
 
     [Inject]
     private IGroupManagementService? GroupManagementService { get; set; }
@@ -395,6 +406,17 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
             InvokeAsync(StateHasChanged);
             });
 
+        hubConnection.On<string, string>("AnswerSubmitted", async (groupName, answerRes) => {
+            answerAttempt = answerRes;
+            submitted = true;
+            if(user.role == "HOST") {
+                someHTML = "<div>Is this question correct? <div>";
+            }
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(10000);
+            submitted = false;
+            });
+
         await hubConnection.StartAsync();
     }
 
@@ -490,10 +512,6 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
         }), null, 1000, 1000);
         }
 
-    public async void onSpacebarDown() {
-        await hubConnection.SendAsync("onSpacebarDown", groupName, userInput);
-    }
-
     public async void HandleKeydown(KeyboardEventArgs e, User player) { //on spacedown, first player to hit space while timer is above 0 pauses timer and enables submit textfield
         
         if(buzzable) {
@@ -511,9 +529,15 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
 
             personalBuzz = true;
         }
-        await Task.Delay(10000);
+        await Task.Delay(12000);
+
+        if(submitted) {
+            await Task.Delay(10000);
+        }
 
         user.buzzed = false;
+
+        submitted = false;
 
         await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
 
@@ -523,13 +547,14 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
     }
     }
 
-    public async void answerSubmitted(EditContext editContext) { //this needs to be sent to host
-        Console.WriteLine(answerAttempt);
+    public async Task answerSubmitted(EditContext editContext) { //this needs to be sent to lobby
+        await hubConnection.SendAsync("AnswerSubmitted", groupName, answerAttempt);
+        submitted = true;
     }
 
     public async void ReturnToQuestions() {
-        
         personalBuzz = false; //needs to set back to false so user can answer later questions
+        submitted = false;
     }
 
     private bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
