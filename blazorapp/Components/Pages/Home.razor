@@ -154,6 +154,8 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
         <div class="player" @ref="testRef" tabindex="-1" @onkeydown="args => HandleKeydown(args,player)" style="@player.color">@player.Username</div> <div>Points: @player.points</div>
     }
 
+    <label>Buzzed player: @currentBuzzedPlayer.Username</label>
+
     <div class="form-group">
         <EditForm Model=@answerAttempt OnSubmit=@answerSubmitted>
         <label>
@@ -166,6 +168,8 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
         @if(user.role == "HOST") {
             @((MarkupString)someHTML)
             <label>@answerAttempt</label>
+            <button @onclick="AddPoints">Yes</button>
+            <button @onclick="SubPoints">No</button>
         }
         @if(user.role == "CONTESTANT"){
             <label>@answerAttempt</label>
@@ -289,6 +293,8 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
 
     public int indexForCurrentPlayer = 0;
 
+    public User? currentBuzzedPlayer = new User();
+
     public int questionTimer = 8;
 
     public bool pauseTimer = false;
@@ -406,16 +412,45 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
             InvokeAsync(StateHasChanged);
             });
 
+        hubConnection.On<string, User>("SetBuzzedPlayer", (groupName, player) => {
+            currentBuzzedPlayer = player;
+            InvokeAsync(StateHasChanged);
+            });
+
         hubConnection.On<string, string>("AnswerSubmitted", async (groupName, answerRes) => {
             answerAttempt = answerRes;
             submitted = true;
             if(user.role == "HOST") {
-                someHTML = "<div>Is this question correct? <div>";
+                someHTML = "<div>Is this answer correct? <div>";
             }
             await InvokeAsync(StateHasChanged);
-            await Task.Delay(10000);
+            //await Task.Delay(12000);
             submitted = false;
             });
+        
+        hubConnection.On<string, User, int>("AddPoints", (groupName, player, points) => {
+            Console.WriteLine("fired3");
+            foreach(User user in allContestants) {
+                Console.WriteLine("searching...add");
+                if(user.Username == player.Username) {
+                    user.points += points;
+                    Console.WriteLine(user.points);
+                }
+            }
+            InvokeAsync(StateHasChanged);
+            }); 
+
+        hubConnection.On<string, User, int>("SubPoints", (groupName, player, points) => {
+            Console.WriteLine("fired4");
+            foreach(User user in allContestants) {
+                Console.WriteLine("searching...sub");
+                if(user.Username == player.Username) {
+                    user.points -= points;
+                    Console.WriteLine(user.points);
+                }
+            }
+            InvokeAsync(StateHasChanged);
+            }); 
 
         await hubConnection.StartAsync();
     }
@@ -525,19 +560,20 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
 
             await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
 
+            await hubConnection.SendAsync("SetBuzzedPlayer", groupName, player);
+
             user.buzzed = true;
 
             personalBuzz = true;
         }
+
         await Task.Delay(12000);
 
         if(submitted) {
-            await Task.Delay(10000);
+            await Task.Delay(12000); //i think this needs to match the delay that's also in the handler for switching submitted
         }
 
         user.buzzed = false;
-
-        submitted = false;
 
         await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
 
@@ -550,6 +586,16 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
     public async Task answerSubmitted(EditContext editContext) { //this needs to be sent to lobby
         await hubConnection.SendAsync("AnswerSubmitted", groupName, answerAttempt);
         submitted = true;
+    }
+
+    public async Task AddPoints() {
+        Console.WriteLine("fired here1");
+        await hubConnection.SendAsync("AddPoints", groupName, currentBuzzedPlayer, currentQuestion.points);
+    }
+
+    public async Task SubPoints() {
+        Console.WriteLine("fired here2");
+        await hubConnection.SendAsync("SubPoints", groupName, currentBuzzedPlayer, currentQuestion.points);
     }
 
     public async void ReturnToQuestions() {

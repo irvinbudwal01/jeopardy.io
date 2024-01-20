@@ -53,9 +53,21 @@ public class ChatHub : Hub
         await Clients.Group(groupName).SendAsync("SetPauseStatus", groupName, pauseTimer);
     }
 
+    public async Task SetBuzzedPlayer(string groupName, User player) {
+        await Clients.Group(groupName).SendAsync("SetBuzzedPlayer", groupName, player);
+    }
+
     public async Task AnswerSubmitted(string groupName, string answer) {
         await Clients.Group(groupName).SendAsync("AnswerSubmitted", groupName, answer);
     }
+
+    public async Task AddPoints(string groupName, User player, int points) {
+        await Clients.Group(groupName).SendAsync("AddPoints", groupName, player, points);
+    }
+    public async Task SubPoints(string groupName, User player, int points) {
+        await Clients.Group(groupName).SendAsync("SubPoints", groupName, player, points);
+    }
+
 
 
 
