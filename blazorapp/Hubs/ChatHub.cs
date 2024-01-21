@@ -45,12 +45,20 @@ public class ChatHub : Hub
         await Clients.Group(groupName).SendAsync("UpdateTimer", groupName, currentTime);
     }
 
+    public async Task UpdateTimerBuzzedPlayer(string groupName, int currentTime) {
+        await Clients.Group(groupName).SendAsync("UpdateTimerBuzzedPlayer", groupName, currentTime);
+    }
+
     public async Task SetQuestionStatus(string groupName, bool buzzable) {
         await Clients.Group(groupName).SendAsync("SetQuestionStatus", groupName, buzzable);
     }
 
     public async Task SetPauseStatus(string groupName, bool pauseTimer) {
         await Clients.Group(groupName).SendAsync("SetPauseStatus", groupName, pauseTimer);
+    }
+
+    public async Task ResetTimers(string groupName) {
+        await Clients.Group(groupName).SendAsync("ResetTimers", groupName);
     }
 
     public async Task SetBuzzedPlayer(string groupName, User player) {

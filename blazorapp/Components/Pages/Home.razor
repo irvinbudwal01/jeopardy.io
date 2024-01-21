@@ -32,11 +32,14 @@
         </label>
     </div>
 
-    <button @onclick="Send" disabled="@(!IsConnected)">Send</button> @*TODO: Repurpose this for ingame chat...not global chat*@
+    <button @onclick="Send" disabled="@(!IsConnected)">Send</button> @*TODO: Repurpose this for ingame chat...not global
+chat*@
 
-    <button @onclick="CreateScreen" disabled="@(!IsConnected || userInput == null)">Create</button> @*cannot create until group name is set*@
+    <button @onclick="CreateScreen" disabled="@(!IsConnected || userInput == null)">Create</button> @*cannot create until
+group name is set*@
 
-    <button @onclick="JoinGroup" disabled="@(!IsConnected || userInput == null || groupName == null)">Join</button> @*should not be able to join until name field is set*@
+    <button @onclick="JoinGroup" disabled="@(!IsConnected || userInput == null || groupName == null)">Join</button> @*should
+not be able to join until name field is set*@
 
     <div>
         <h3>
@@ -55,7 +58,8 @@
 
 }
 
-else if (currentState == States.creatingRoom) @*game creating screen...technically all fields should be filled in with questions before lobby creation*@
+else if (currentState == States.creatingRoom) @*game creating screen...technically all fields should be filled in with
+questions before lobby creation*@
 {
 
     <div class="form-group">
@@ -65,7 +69,8 @@ else if (currentState == States.creatingRoom) @*game creating screen...technical
         </label>
         <label>
             Categories:
-            <input @bind="gameBoard[0]" /> @*I could make this look nicer...maybe give similar styling to actual gameboard?*@
+            <input @bind="gameBoard[0]" /> @*I could make this look nicer...maybe give similar styling to actual
+        gameboard?*@
             <input @bind="gameBoard[1]" />
             <input @bind="gameBoard[2]" />
             <input @bind="gameBoard[3]" />
@@ -101,7 +106,8 @@ else if (currentState == States.creatingRoom) @*game creating screen...technical
         </label>
     </div>
 
-    <button @onclick="CreateGroup" disabled="@(!IsConnected || groupName == null)">Create</button> @*maybe have check for each entry being filled? do it in a function that returns bools instead*@
+    <button @onclick="CreateGroup" disabled="@(!IsConnected || groupName == null)">Create</button> @*maybe have check for
+each entry being filled? do it in a function that returns bools instead*@
 
 }
 
@@ -117,7 +123,8 @@ else if (currentState == States.gameLobby) @*game lobby...this screen is fine...
     <button @onclick="InitGame" disabled="@(!IsConnected || user.role != "HOST")">Start!</button> @*working as intended...*@
 }
 
-else if (currentState == States.inGame && allContestants.Count != 0) @*be sure to only render if allContestants has been initialized (avoids index error)*@
+else if (currentState == States.inGame && allContestants.Count != 0) @*be sure to only render if allContestants has been
+initialized (avoids index error)*@
 {
 
     <ul id="playersList"> CONTESTANTS
@@ -127,59 +134,73 @@ else if (currentState == States.inGame && allContestants.Count != 0) @*be sure t
         }
     </ul>
 
-    <div>Current player: @allContestants[indexForCurrentPlayer].Username</div> @*this should be the only way to find who the selected player is (using index)*@
+    <div>Current player: @allContestants[indexForCurrentPlayer].Username</div> @*this should be the only way to find who the
+selected player is (using index)*@
 
     <div class='game-board'>
-        @foreach (var entry in realCategories) @*renders categories and questions separately since only questions should be clickable*@
+        @foreach (var entry in realCategories) @*renders categories and questions separately since only questions should be
+    clickable*@
         {
             <div class='entry'>@entry</div>
         }
         @foreach (var entry in realQuestions) @*this needs a separate state if a button is clicked...*@
         {
             <div class='entry'>@entry.points
-            <button class="btn-select" disabled="@(entry.answered)" @onclick="() => SelectQuestion(entry)">Select</button> @*lambda function to give each entry callback so correct question is displayed*@
+                <button class="btn-select" disabled="@(entry.answered)" @onclick="() => SelectQuestion(entry)">Select</button>
+                @*lambda function to give each entry callback so correct question is displayed*@
             </div>
         }
     </div>
 }
 
-else if (currentState == States.inQuestion) { @*<-- need to finish implementing this... think i'll just have a submission bar that only the buzzed player can hit *@
-    <div>@currentQuestion.question</div>      @*need to figure out how to implement a timer so all players can *@
+else if (currentState == States.inQuestion)
+{ @*<-- need to finish implementing this... think i'll just have a
+submission bar that only the buzzed player can hit *@
+    <div>@currentQuestion.question</div> @*need to figure out how to implement a timer so all players can *@
     <div>@questionTimer</div>
     <div>Buzz Status: @buzzable</div>
     <div>Paused Status: @pauseTimer</div>
 
-    @foreach(var player in allContestants) {
+    @foreach (var player in allContestants)
+    {
         <br>
-        <div class="player" @ref="testRef" tabindex="-1" @onkeydown="args => HandleKeydown(args,player)" style="@player.color">@player.Username</div> <div>Points: @player.points</div>
+        <div class="player" @ref="testRef" tabindex="-1" @onkeydown="args => HandleKeydown(args,player)" style="@player.color">
+            @player.Username</div>
+        <div>Points: @player.points</div>
     }
 
     <label>Buzzed player: @currentBuzzedPlayer.Username</label>
 
     <div class="form-group">
         <EditForm Model=@answerAttempt OnSubmit=@answerSubmitted>
-        <label>
-            Answer:
-            <InputText disabled="@(!user.buzzed || !personalBuzz)" @bind-Value="@answerAttempt"/>
-        </label>
-            <input type="submit" disabled="@(!user.buzzed || !personalBuzz || submitted)" value="Submit"/> @*this needs to be clicked twice to fire answerSubmitted for some reason*@
+            <label>
+                Answer:
+                <InputText disabled="@(!user.buzzed || !personalBuzz)" @bind-Value="@answerAttempt" />
+            </label>
+            <input type="submit" disabled="@(!user.buzzed || !personalBuzz || submitted)" value="Submit" /> @*this needs to
+        be clicked twice to fire answerSubmitted for some reason*@
         </EditForm>
 
-        @if(user.role == "HOST") {
+        <label>Remaining time: @buzzedPlayerTimer </label>
+        <br>
+
+        @if (user.role == "HOST")
+        {
             @((MarkupString)someHTML)
-            <label>@answerAttempt</label>
-            <button @onclick="AddPoints">Yes</button>
-            <button @onclick="SubPoints">No</button>
+            <label> @answerAttempt</label>
+            <button disabled="@(!submitted)" @onclick="AddPoints">Yes</button>
+            <button disabled="@(!submitted)" @onclick="SubPoints">No</button>
         }
-        @if(user.role == "CONTESTANT"){
+        @if (user.role == "CONTESTANT")
+        {
             <label>@answerAttempt</label>
         }
     </div>
 
     @* <button @onclick="toggleInput">input</button>
-    @if(showInput) { 
-    <div class="highlight" @ref="testRef" tabindex="0" @onkeydown="HandleKeydown">@pressedKey</div>
-    } *@
+@if(showInput) {
+<div class="highlight" @ref="testRef" tabindex="0" @onkeydown="HandleKeydown">@pressedKey</div>
+} *@
 }
 
 <style>
@@ -205,11 +226,11 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
     }
 
     .btn-select {
-    max-height: 25px;
-    max-width: 60px;
-    justify-self: bottom;
-    align-self: bottom;
-    font-size: small;
+        max-height: 25px;
+        max-width: 60px;
+        justify-self: bottom;
+        align-self: bottom;
+        font-size: small;
     }
 
     .player {
@@ -230,34 +251,34 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
     private string? pressedKey;
 
     @* protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if(firstRender) {
-            if (showInput) await testRef.FocusAsync();
-        }
-    }
-    void toggleInput() {
-        showInput = !showInput;
-    } *@
-    @* public class User 
-    {
-        public string? Username { get; set; }                                   *************************IMPORTED THESE TWO USING Models/DataTypes.cs
-        public string? role { get; set; }
-    };
+if(firstRender) {
+if (showInput) await testRef.FocusAsync();
+}
+}
+void toggleInput() {
+showInput = !showInput;
+} *@
+    @* public class User
+{
+public string? Username { get; set; } *************************IMPORTED THESE TWO USING Models/DataTypes.cs
+public string? role { get; set; }
+};
 
-    public class Questions
-    {
-        public string? question { get; set; }
-        public int? points { get; set; }
+public class Questions
+{
+public string? question { get; set; }
+public int? points { get; set; }
 
-        public bool answered { get; set; }
+public bool answered { get; set; }
 
-        public Questions()
-        {
-            question = null;
-            points = null;
-            answered = false;
+public Questions()
+{
+question = null;
+points = null;
+answered = false;
 
-        }
-    } *@
+}
+} *@
 
     private HubConnection? hubConnection; //init individal user connection to hub
     private List<string> messages = new List<string>(); //messages to display
@@ -268,7 +289,7 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
 
     private string? groupName;
 
-    private enum States { homePage, creatingRoom, gameLobby, inGame, inQuestion, postGame};
+    private enum States { homePage, creatingRoom, gameLobby, inGame, inQuestion, postGame };
 
     private States? currentState = States.homePage;
 
@@ -297,7 +318,11 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
 
     public int questionTimer = 8;
 
+    public int buzzedPlayerTimer = 10;
+
     public bool pauseTimer = false;
+
+    public bool buzzedPauseTimer = false;
 
     public string? answerAttempt = "";
 
@@ -385,9 +410,12 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
             InvokeAsync(StateHasChanged);
         });
 
-        hubConnection.On<string, Questions>("SelectQuestion", (groupName, question) => {
-            foreach(Questions entry in realQuestions) { //this implies that EVERY QUESTION MUST BE DIFFERENT
-                if(entry.question == question.question){
+        hubConnection.On<string, Questions>("SelectQuestion", (groupName, question) =>
+        {
+            foreach (Questions entry in realQuestions)
+            { //this implies that EVERY QUESTION MUST BE DIFFERENT
+                if (entry.question == question.question)
+                {
                     entry.answered = true;
                 }
             }
@@ -395,62 +423,87 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
             currentState = States.inQuestion;
             currentQuestion = question;
             InvokeAsync(StateHasChanged);
-            });
+        });
 
-        hubConnection.On<string, int>("UpdateTimer", (groupName, currentTime) => {
+        hubConnection.On<string, int>("UpdateTimer", (groupName, currentTime) =>
+        {
             questionTimer = currentTime;
             InvokeAsync(StateHasChanged);
-            });
+        });
 
-        hubConnection.On<string, bool>("SetQuestionStatus", (groupName, buzzableRes) => {
+        hubConnection.On<string, bool>("SetQuestionStatus", (groupName, buzzableRes) =>
+        {
             buzzable = !buzzableRes;
             InvokeAsync(StateHasChanged);
-            });
+        });
 
-        hubConnection.On<string, bool>("SetPauseStatus", (groupName, pauseTimerRes) => {
+        hubConnection.On<string, bool>("SetPauseStatus", (groupName, pauseTimerRes) =>
+        {
             pauseTimer = !pauseTimerRes;
             InvokeAsync(StateHasChanged);
-            });
+        });
 
-        hubConnection.On<string, User>("SetBuzzedPlayer", (groupName, player) => {
+        hubConnection.On<string, User>("SetBuzzedPlayer", (groupName, player) =>
+        {
             currentBuzzedPlayer = player;
+            buzzedPauseTimer = false;
             InvokeAsync(StateHasChanged);
-            });
+        });
 
-        hubConnection.On<string, string>("AnswerSubmitted", async (groupName, answerRes) => {
+        hubConnection.On<string, string>("AnswerSubmitted", (groupName, answerRes) =>
+        {
             answerAttempt = answerRes;
             submitted = true;
-            if(user.role == "HOST") {
+            if (user.role == "HOST")
+            {
                 someHTML = "<div>Is this answer correct? <div>";
             }
-            await InvokeAsync(StateHasChanged);
-            //await Task.Delay(12000);
-            submitted = false;
-            });
-        
-        hubConnection.On<string, User, int>("AddPoints", (groupName, player, points) => {
-            Console.WriteLine("fired3");
-            foreach(User user in allContestants) {
-                Console.WriteLine("searching...add");
-                if(user.Username == player.Username) {
-                    user.points += points;
-                    Console.WriteLine(user.points);
-                }
-            }
+            buzzedPauseTimer = true;
+            buzzedPlayerTimer = 10;
             InvokeAsync(StateHasChanged);
-            }); 
+        });
 
-        hubConnection.On<string, User, int>("SubPoints", (groupName, player, points) => {
-            Console.WriteLine("fired4");
-            foreach(User user in allContestants) {
-                Console.WriteLine("searching...sub");
-                if(user.Username == player.Username) {
-                    user.points -= points;
-                    Console.WriteLine(user.points);
+        hubConnection.On<string, int>("UpdateTimerBuzzedPlayer", (groupName, currentTime) =>
+        {
+            buzzedPlayerTimer = currentTime;
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string>("ResetTimers", (groupName) =>
+        {
+            buzzedPlayerTimer = 10;
+            questionTimer = 8;
+        });
+
+        hubConnection.On<string, User, int>("AddPoints", async (groupName, player, points) =>
+        {
+            foreach (User user in allContestants)
+            {
+                if (user.Username == player.Username)
+                {
+                    user.points += points;
+                    await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+                    await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
                 }
             }
-            InvokeAsync(StateHasChanged);
-            }); 
+            submitted = false;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<string, User, int>("SubPoints", async (groupName, player, points) =>
+        {
+            foreach (User user in allContestants)
+            {
+                if (user.Username == player.Username)
+                {
+                    user.points -= points;
+                    await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+                    await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+                }
+            }
+            submitted = false;
+            await InvokeAsync(StateHasChanged);
+        });
 
         await hubConnection.StartAsync();
     }
@@ -520,85 +573,109 @@ else if (currentState == States.inQuestion) { @*<-- need to finish implementing 
         await hubConnection.SendAsync("SelectPlayer", groupName, indexForCurrentPlayer);
     }
 
-    public async void SelectQuestion(Questions question) {
+    public async void SelectQuestion(Questions question)
+    {
         question.answered = true;
-        await hubConnection.SendAsync("SelectQuestion", groupName, question); 
+        await hubConnection.SendAsync("SelectQuestion", groupName, question);
 
         //currentState = States.inQuestion;
 
         @* int initialTimer = 5;
 
-        var firstTimer = new Timer(new TimerCallback(async _ => {
-            if(initialTimer > 0) {
-                initialTimer--;
-            }
-        }), null, 1000, 1000); *@
-        
+var firstTimer = new Timer(new TimerCallback(async _ => {
+if(initialTimer > 0) {
+initialTimer--;
+}
+}), null, 1000, 1000); *@
+
         await Task.Delay(5000);
 
         await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
 
         var timer = new Timer(new TimerCallback(async _ =>
         {
-            if(questionTimer > 0 && !pauseTimer) {
+            if (questionTimer > 0 && !pauseTimer)
+            {
                 questionTimer--;
                 await hubConnection.SendAsync("UpdateTimer", groupName, questionTimer);
             }
         }), null, 1000, 1000);
-        }
-
-    public async void HandleKeydown(KeyboardEventArgs e, User player) { //on spacedown, first player to hit space while timer is above 0 pauses timer and enables submit textfield
-        
-        if(buzzable) {
-        
-        pressedKey = e.Key;
-        if(pressedKey == " " && player.Username == userInput && !personalBuzz) {
-
-            await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
-
-            player.color = "background-color: blue; color: red";
-
-            await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
-
-            await hubConnection.SendAsync("SetBuzzedPlayer", groupName, player);
-
-            user.buzzed = true;
-
-            personalBuzz = true;
-        }
-
-        await Task.Delay(12000);
-
-        if(submitted) {
-            await Task.Delay(12000); //i think this needs to match the delay that's also in the handler for switching submitted
-        }
-
-        user.buzzed = false;
-
-        await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
-
-        await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
-
-        player.color = "background-color: red; color: blue";
-    }
     }
 
-    public async Task answerSubmitted(EditContext editContext) { //this needs to be sent to lobby
+    public async void HandleKeydown(KeyboardEventArgs e, User player)
+    { //on spacedown, first player to hit space while timer is above 0 pauses timer and enables submit textfield
+
+        if (buzzable)
+        {
+
+            pressedKey = e.Key;
+            if (pressedKey == " " && player.Username == userInput && !personalBuzz)
+            {
+
+                await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+
+                player.color = "background-color: blue; color: red";
+
+                await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+
+                await hubConnection.SendAsync("SetBuzzedPlayer", groupName, player);
+
+                user.buzzed = true;
+
+                personalBuzz = true;
+            }
+
+            var timer2 = new Timer(new TimerCallback(async _ =>
+            {
+                if (buzzedPlayerTimer > 0 && !buzzedPauseTimer)
+                {
+                    buzzedPlayerTimer--;
+                    await hubConnection.SendAsync("UpdateTimerBuzzedPlayer", groupName, buzzedPlayerTimer);
+                }
+
+                else
+                {
+                    player.color = "background-color: red; color: blue";
+                    user.buzzed = false;
+                }
+            }), null, 1000, 1000);
+
+            @* if(submitted) {
+await Task.Delay(12000); //i think this needs to match the delay that's also in the handler for switching submitted
+} *@
+
+            @* user.buzzed = false; *@
+
+            @* await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+
+            player.color = "background-color: red; color: blue"; *@
+
+            //await hubConnection.SendAsync("ResetTimers", groupName);
+            @* if(buzzedPlayerTimer <= 0) {
+                await hubConnection.SendAsync("SetPauseStatus", groupName, pauseTimer);
+                await hubConnection.SendAsync("SetQuestionStatus", groupName, buzzable);
+                await hubConnection.SendAsync("ResetTimers", groupName);
+            } *@
+        }
+    }
+
+    public async Task answerSubmitted(EditContext editContext)
+    { //this needs to be sent to lobby
         await hubConnection.SendAsync("AnswerSubmitted", groupName, answerAttempt);
-        submitted = true;
     }
 
-    public async Task AddPoints() {
-        Console.WriteLine("fired here1");
+    public async Task AddPoints()
+    {
         await hubConnection.SendAsync("AddPoints", groupName, currentBuzzedPlayer, currentQuestion.points);
     }
 
-    public async Task SubPoints() {
-        Console.WriteLine("fired here2");
+    public async Task SubPoints()
+    {
         await hubConnection.SendAsync("SubPoints", groupName, currentBuzzedPlayer, currentQuestion.points);
     }
 
-    public async void ReturnToQuestions() {
+    public async void ReturnToQuestions()
+    {
         personalBuzz = false; //needs to set back to false so user can answer later questions
         submitted = false;
     }
